@@ -51,6 +51,8 @@ jest.mock('@librechat/api', () => ({
     jest.requireActual('@librechat/api').getAgentErrorMetadata(...args),
   applyForcedTemporaryRequest: jest.fn(),
   resolveResumableRetention: jest.requireActual('@librechat/api').resolveResumableRetention,
+  markAbortedCompactionContent: (...args) =>
+    jest.requireActual('@librechat/api').markAbortedCompactionContent(...args),
   sendEvent: jest.fn(),
   persistedReasoningOverrideFields:
     jest.requireActual('@librechat/api').persistedReasoningOverrideFields,
@@ -171,6 +173,7 @@ describe('ResumableAgentController tenant context', () => {
   const firePartialDisconnect = async (
     user,
     jobRecord = { createdAt: 1000, contextMeta: partialContextMeta },
+    { body = {}, aggregatedContent = [{ type: 'text', text: 'Partial response' }] } = {},
   ) => {
     mockGetConvo.mockResolvedValue({
       conversationId: 'conversation-123',
@@ -224,6 +227,7 @@ describe('ResumableAgentController tenant context', () => {
           endpoint: 'agents',
           modelOptions: { model: 'gpt-4.1' },
         },
+        ...body,
       },
       config: {},
     };
@@ -236,7 +240,7 @@ describe('ResumableAgentController tenant context', () => {
     await AgentController(req, res, jest.fn(), initializeClient, null);
     expect(allSubscribersLeftHandler).toEqual(expect.any(Function));
 
-    await allSubscribersLeftHandler([{ type: 'text', text: 'Partial response' }]);
+    await allSubscribersLeftHandler(aggregatedContent);
     return tenantSeenBySave;
   };
 
@@ -281,5 +285,34 @@ describe('ResumableAgentController tenant context', () => {
     expect(mockTenantStorageRun).not.toHaveBeenCalled();
     expect(tenantSeenBySave).toBeUndefined();
     expect(mockSaveMessage).toHaveBeenCalledTimes(1);
+  });
+
+  /** A cancelled compaction's partial row is built here, not by sendCompletion,
+   *  so it carries no marker unless the disconnect path stamps one: without it
+   *  the row reads as an answer to the message it hangs off and keeps that
+   *  message's rerun controls. */
+  it('stamps a partial response saved on disconnect with the compaction identity', async () => {
+    await firePartialDisconnect(
+      { id: 'user-123' },
+      { createdAt: 1000 },
+      {
+        body: { compact: true },
+        aggregatedContent: [
+          {
+            type: 'summary',
+            content: [{ type: 'text', text: 'Half a summary' }],
+            summarizing: true,
+          },
+        ],
+      },
+    );
+
+    const [, savedMessage] = mockSaveMessage.mock.calls[0];
+    expect(savedMessage).toMatchObject({
+      messageId: 'response-message',
+      unfinished: true,
+      error: false,
+      content: [{ type: 'summary', summarizing: true, initiatedBy: 'user' }],
+    });
   });
 });
