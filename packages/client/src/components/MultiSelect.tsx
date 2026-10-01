@@ -175,8 +175,8 @@ export default function MultiSelect<T extends string>({
           unmountOnHide
           finalFocus={selectRef}
           className={cn(
-            'animate-popover z-40 flex max-h-[300px]',
-            'flex-col overflow-hidden rounded-xl',
+            'animate-popover z-40 flex max-h-[18.75rem]',
+            'flex-col overflow-auto overscroll-contain rounded-xl',
             'bg-surface-secondary text-text-primary px-1.5 py-1 shadow-lg',
             'border-border-light border',
             'outline-hidden',

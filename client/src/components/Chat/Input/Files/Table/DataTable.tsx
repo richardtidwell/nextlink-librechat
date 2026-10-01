@@ -105,7 +105,7 @@ export default function DataTable<TData, TValue>({ columns, data }: DataTablePro
             setRowSelection({});
           }}
           disabled={!table.getFilteredSelectedRowModel().rows.length || isDeleting}
-          className={cn('min-w-[40px] transition-all duration-200', isSmallScreen && 'px-2 py-1')}
+          className={cn('min-w-[2.5rem] transition-all duration-200', isSmallScreen && 'px-2 py-1')}
         >
           {isDeleting ? (
             <Spinner className="size-3.5 sm:size-4" />
@@ -131,7 +131,7 @@ export default function DataTable<TData, TValue>({ columns, data }: DataTablePro
         </div>
       </div>
       <div className="relative grid h-full max-h-[calc(100vh-20rem)] min-h-[calc(100vh-20rem)] w-full flex-1 overflow-hidden overflow-x-auto overflow-y-auto rounded-md">
-        <Table className="w-full min-w-[300px] border-separate border-spacing-0">
+        <Table className="w-full min-w-[18.75rem] border-separate border-spacing-0">
           <TableHeader sticky>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
