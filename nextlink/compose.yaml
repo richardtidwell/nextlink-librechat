@@ -1,0 +1,16 @@
+name: nextlink_librechat
+services:
+  mongodb:
+    image: mongo:8.0.20
+    ports:
+      - '127.0.0.1:27019:27017'
+    volumes:
+      - nextlink_librechat_mongo:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ping:1}).ok']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  nextlink_librechat_mongo:

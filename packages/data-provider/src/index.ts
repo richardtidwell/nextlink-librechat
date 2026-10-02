@@ -93,3 +93,4 @@ export * from './code/approval';
 export * from './code/workspace';
 
 export * from './types/scheduleConsent';
+export * from './nextlink';

@@ -33,6 +33,7 @@ import { composerLiftFamily } from './Input/Composer/state';
 import { showComposerTipsAtom } from '~/store/composerTips';
 import { OwnerTextProvider } from './Messages/PrivateText';
 import { useGetMessagesByConvoId } from '~/data-provider';
+import NextlinkPanel from '~/components/Nextlink/Panel';
 import Footer, { useConfiguredFooter } from './Footer';
 import { AskAnswerHostProvider } from './ask/state';
 import MessagesView from './Messages/MessagesView';
@@ -250,6 +251,16 @@ function ChatView({
                               isLandingPage && 'max-w-3xl transition-all duration-200 xl:max-w-4xl',
                             )}
                           >
+                            {String(chatHelpers.conversation?.endpoint) === 'Nextlink' && (
+                              <NextlinkPanel
+                                conversationId={
+                                  (isSubmitting && rootSubmission?.conversation?.conversationId) ||
+                                  conversationId ||
+                                  'new'
+                                }
+                                isSubmitting={isSubmitting}
+                              />
+                            )}
                             {isLandingPage && <ConversationStarters />}
                             {isSubagentThreadReadOnly ? (
                               <div

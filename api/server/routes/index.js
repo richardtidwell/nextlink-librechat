@@ -45,6 +45,7 @@ const rum = require('./rum');
 const insights = require('./insights');
 
 module.exports = {
+  nextlink: require('./nextlink'),
   insights,
   rum,
   mcp,

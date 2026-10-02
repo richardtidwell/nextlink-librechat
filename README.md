@@ -1,3 +1,5 @@
+> **Nextlink comparison fork:** see [setup, architecture, and verification](nextlink/README.md). The working branch is `nextlink-workspace`.
+
 <p align="center">
   <a href="https://librechat.ai">
     <img src="client/public/assets/logo.svg" height="256">

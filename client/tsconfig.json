@@ -19,7 +19,6 @@
     "paths": {
       "~/*": ["./src/*"],
       "test/*": ["./test/*"],
-      "*": ["./*", "../../node_modules/*"],
       "librechat-data-provider/*": ["../packages/data-provider/*"]
     }
   },

@@ -1,4 +1,5 @@
 export enum QueryKeys {
+  nextlink = 'nextlink',
   messages = 'messages',
   ownerMessageTexts = 'ownerMessageTexts',
   sharedMessages = 'sharedMessages',
@@ -121,6 +122,7 @@ export const DynamicQueryKeys = {
 } as const;
 
 export enum MutationKeys {
+  nextlink = 'nextlink',
   subagentControl = 'subagentControl',
   cancelBackgroundTasks = 'cancelBackgroundTasks',
   enqueueAgentQueuedTurn = 'enqueueAgentQueuedTurn',
