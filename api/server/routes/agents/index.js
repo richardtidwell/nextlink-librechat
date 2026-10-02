@@ -6,8 +6,7 @@ const {
   TERMINAL_PUBLICATION_RECONNECT_ERROR,
   hasPersistableAbortContent,
   announceStoppedReply,
-  resolveAbortedTurnAnchorDecision,
-  planAbortedTurnPersistence,
+  resolveAbortedTurnPersistence,
   buildAbortedResponseMetadata,
   isPendingActionStale,
   toClientPendingAction,
@@ -772,18 +771,12 @@ router.post('/chat/abort', configMiddleware, async (req, res, next) => {
            *  whether the normal FINAL must be withheld for a reconciliation
            *  frame instead) comes from @librechat/api, decided from the
            *  compaction anchor this route reads. */
-          const abortPersistencePlan = planAbortedTurnPersistence(
-            await resolveAbortedTurnAnchorDecision(jobData, {
-              messageExists: (messageId, conversationId) =>
-                getMessages({ user: req?.user?.id, messageId, conversationId }, '_id').then(
-                  (rows) => rows.length > 0,
-                ),
-            }),
+          const abortPersistencePlan = await resolveAbortedTurnPersistence(
+            jobData,
             shouldPersistAbortedTurn,
+            { userId: req?.user?.id, getMessages },
           );
-          if (abortPersistencePlan.withholdFinal && abortPersistencePlan.withholdReason) {
-            persistenceErrors.push(new Error(abortPersistencePlan.withholdReason));
-          }
+          persistenceErrors.push(...abortPersistencePlan.persistenceErrors);
 
           if (
             jobData?.userMessage?.messageId &&
@@ -818,7 +811,7 @@ router.post('/chat/abort', configMiddleware, async (req, res, next) => {
               endpoint: jobData.endpoint,
               iconURL: jobData.iconURL,
               model: jobData.model,
-              unfinished: true,
+              unfinished: abortPersistencePlan.responseUnfinished,
               error: false,
               isCreatedByUser: false,
               ...(Array.isArray(jobData.userSubmittedPaths) &&
