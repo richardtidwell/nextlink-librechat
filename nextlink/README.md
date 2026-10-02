@@ -21,6 +21,10 @@ The server-only environment variables `NEXTLINK_BRIDGE_URL` and `NEXTLINK_LIBREC
 
 The chat panel exposes connector switches, pending tool arguments, Allow once / Always allow in this chat / Deny, tool results, grant revocation, and the actual routed model/cost. It uses authenticated `/api/nextlink` routes; the browser never receives the integration key. The proxy derives the user ID from LibreChat authentication. Connector administration links to the existing GUI.
 
+Approvals and execution activity appear inline at the conversation tail. The panel follows the server-created conversation ID during the first streamed turn, before React Router has observed the new URL. Connector switches remain beside the composer. Activity shows routing, tool arguments/results/status, elapsed time, model calls, provider-reported input/output and reasoning tokens, and total estimated cost. Reasoning tokens are a subset of output tokens, not an additional charge. Provider-supplied reasoning summaries are shown only when present; the adapter does not fabricate thinking text. Currently enabled providers may not return a summary.
+
+Approval expiry is distinct from Deny: after 90 seconds without a decision the tool does not run, and the result says approval timed out. Saved grants still apply only to the exact conversation/tool and are revocable in Connectors.
+
 The backend selects models using the current routing settings. Full selected-branch text context is forwarded, so follow-ups and regenerated branches do not depend on the append-only execution mirror. MCP tool calls and accounting stay in the companion backend. A repeated question does not automatically authorize reuse.
 
 ## Comparison boundary
@@ -36,6 +40,8 @@ Text messages only. Attachments and native LibreChat tools, agents, web search, 
 
 The live test sends fictional text with chat connectors disabled and incurs model usage. Bridge/MCP tests use isolated fixtures and mocked external model responses. No production connector queries are needed for verification.
 
-Local validation on 2026-10-02: production package/client builds passed, all three changed TypeScript workspaces passed, six focused fork tests passed, and 47 companion backend tests passed. A live Jev-routed conversation streamed through Terra; its contextual follow-up used Luna. Chromium verified chat, reload, renaming, and light/dark connector menus. The client TypeScript wildcard path was removed because it reached into the parent companion's dependencies in this nested checkout.
+Local validation on 2026-10-02: production package/client builds passed, all three changed TypeScript workspaces passed, eight focused fork tests passed, and 48 companion backend tests passed. A live Jev-routed conversation streamed through Terra; its contextual follow-up used Luna. Chromium verified chat, reload, renaming, light/dark connector menus, and isolated first-turn tool approval, Allow once, Always allow across reload, Deny, connector disablement, and the 90-second unattended timeout. The client TypeScript wildcard path was removed because it reached into the parent companion's dependencies in this nested checkout.
 
 Lighthouse was not run in this session: its harness drives Chrome through Playwright, while the active browser-control instructions require CUA. Browser checks above are functional verification, not a Lighthouse performance result. No PR review has been requested.
+
+To reproduce the full-stack approval UI locally, run `node scripts/librechat-ui-fixture.mjs` from the companion root, then open http://localhost:3180. It uses a separate MongoDB database, an in-memory companion database, a real MCP fixture with fictional results, and deterministic model responses. It refuses external model/connector requests.

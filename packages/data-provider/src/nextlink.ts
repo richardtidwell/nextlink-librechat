@@ -5,6 +5,8 @@ export interface NextlinkToolCall {
   tool: string;
   arguments: Record<string, unknown>;
   status: string;
+  expiresAt?: string;
+  latencyMs?: number;
   approval?: string;
   result?: string;
 }
@@ -22,6 +24,17 @@ export interface NextlinkState {
     cost?: number;
     routerBackend?: string;
     reused?: boolean;
+    stage?: string;
+    startedAt?: string;
+    latencyMs?: number;
+    reasoningEffort?: string;
+    reasoningSummary?: string;
+    providerUsage?: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      completion_tokens_details?: { reasoning_tokens?: number };
+    };
+    generationCalls?: { round: number; model: string; status: string }[];
   } | null;
 }
 const endpoint = (id: string) => `/api/nextlink/${encodeURIComponent(id)}`;

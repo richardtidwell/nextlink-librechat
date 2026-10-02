@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai';
 import { useRecoilValue } from 'recoil';
 import { Constants } from 'librechat-data-provider';
 import type { TMessage } from 'librechat-data-provider';
+import type { ReactNode } from 'react';
 import {
   useLocalize,
   useScreenshot,
@@ -29,9 +30,11 @@ import store from '~/store';
 function MessagesViewContent({
   messagesTree: _messagesTree,
   messages,
+  activity,
 }: {
   messagesTree?: TMessage[] | null;
   messages?: TMessage[] | null;
+  activity?: ReactNode;
 }) {
   const localize = useLocalize();
   const fontSize = useAtomValue(fontSizeAtom);
@@ -201,6 +204,7 @@ function MessagesViewContent({
                * conversation id still names the source chat, and its Cancel
                * and Escalate actions would mutate that run while sitting at
                * the destination thread's tail. */}
+              {activity}
               {treeConversationId != null && (
                 <PendingSteers
                   conversationId={treeConversationId}
@@ -232,14 +236,16 @@ function MessagesViewContent({
 export default function MessagesView({
   messagesTree,
   messages,
+  activity,
 }: {
   messagesTree?: TMessage[] | null;
   messages?: TMessage[] | null;
+  activity?: ReactNode;
 }) {
   return (
     <MessagesViewProvider>
       <MessagePartsHostProvider host={appMessagePartsHost}>
-        <MessagesViewContent messagesTree={messagesTree} messages={messages} />
+        <MessagesViewContent messagesTree={messagesTree} messages={messages} activity={activity} />
       </MessagePartsHostProvider>
     </MessagesViewProvider>
   );

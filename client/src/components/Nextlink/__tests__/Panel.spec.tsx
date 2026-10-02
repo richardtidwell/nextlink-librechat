@@ -79,3 +79,69 @@ it('allows a pending tool for this chat and exposes revocation of saved grants',
     expect(nextlinkService.revoke).toHaveBeenCalledWith('chat-a', 'fixture', 'lookup'),
   );
 });
+
+it('follows the server-created chat while the route still points at new, then stops showing its approval after completion', async () => {
+  const get = jest.spyOn(nextlinkService, 'get').mockImplementation(async (id) => ({
+    ...state,
+    running: id === 'server-chat',
+    pending:
+      id === 'server-chat'
+        ? [
+            {
+              id: 'first-call',
+              server: 'Fixture',
+              tool: 'lookup',
+              arguments: {},
+              status: 'awaiting approval',
+            },
+          ]
+        : [],
+  }));
+  const approve = jest.spyOn(nextlinkService, 'approve').mockResolvedValue({});
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, cacheTime: 0 } } });
+  const tree = (activeConversationId?: string) => (
+    <QueryClientProvider client={client}>
+      <Panel conversationId="new" activeConversationId={activeConversationId} isSubmitting />
+    </QueryClientProvider>
+  );
+  const view = render(tree());
+  await waitFor(() => expect(get).toHaveBeenCalledWith('new'));
+  expect(screen.queryByRole('button', { name: 'Allow once' })).not.toBeInTheDocument();
+  view.rerender(tree('server-chat'));
+  fireEvent.click(await screen.findByRole('button', { name: 'Allow once' }));
+  await waitFor(() =>
+    expect(approve).toHaveBeenCalledWith('server-chat', 'first-call', true, false),
+  );
+  view.rerender(
+    <QueryClientProvider client={client}>
+      <Panel
+        conversationId="another-chat"
+        activeConversationId="server-chat"
+        isSubmitting={false}
+      />
+    </QueryClientProvider>,
+  );
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: 'Allow once' })).not.toBeInTheDocument(),
+  );
+});
+it('shows actual usage and reasoning-token details without inventing a thinking transcript', async () => {
+  jest.spyOn(nextlinkService, 'get').mockResolvedValue({
+    ...state,
+    metadata: {
+      actualModel: 'fixture-model',
+      model: 'fixture-model',
+      routerBackend: 'fixture-router',
+      latencyMs: 12000,
+      providerUsage: {
+        prompt_tokens: 120,
+        completion_tokens: 40,
+        completion_tokens_details: { reasoning_tokens: 15 },
+      },
+    },
+  });
+  mount();
+  fireEvent.click(await screen.findByText(/Tool activity/));
+  expect(screen.getByText(/120 input.*40 output tokens/)).toHaveTextContent('15 reasoning tokens');
+  expect(screen.queryByText('Reasoning summary')).not.toBeInTheDocument();
+});

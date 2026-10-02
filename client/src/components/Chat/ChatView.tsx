@@ -160,7 +160,22 @@ function ChatView({
   } else if ((isLoading || isNavigating) && !isLandingPage) {
     content = <LoadingSpinner />;
   } else if (!isLandingPage) {
-    content = <MessagesView messagesTree={messagesTree} messages={messages} />;
+    content = (
+      <MessagesView
+        messagesTree={messagesTree}
+        messages={messages}
+        activity={
+          String(chatHelpers.conversation?.endpoint) === 'Nextlink' ? (
+            <NextlinkPanel
+              conversationId={conversationId || 'new'}
+              activeConversationId={chatHelpers.conversation?.conversationId}
+              isSubmitting={isSubmitting}
+              placement="activity"
+            />
+          ) : undefined
+        }
+      />
+    );
   } else {
     content = <Landing centerFormOnLanding={centerFormOnLanding} />;
   }
@@ -253,11 +268,9 @@ function ChatView({
                           >
                             {String(chatHelpers.conversation?.endpoint) === 'Nextlink' && (
                               <NextlinkPanel
-                                conversationId={
-                                  (isSubmitting && rootSubmission?.conversation?.conversationId) ||
-                                  conversationId ||
-                                  'new'
-                                }
+                                placement="controls"
+                                conversationId={conversationId || 'new'}
+                                activeConversationId={chatHelpers.conversation?.conversationId}
                                 isSubmitting={isSubmitting}
                               />
                             )}
